@@ -1,5 +1,5 @@
 def input_error(func):
-    def wrapper(*args, **kwargs):
+    def inner(*args, **kwargs):
         try:
             return func(*args, **kwargs)
         except KeyError:
@@ -8,69 +8,49 @@ def input_error(func):
             return "Give me name and phone please"
         except IndexError:
             return "Contact not found"
-    return wrapper
+    return inner
 
+def hello():
+    return "Hello! How can I help you?"
 
-class AssistantBot:
-    def __init__(self):
-        self.contacts = {}
+@input_error
+def add_contact(contacts, name, phone):
+    contacts[name] = phone
+    return f"Contact {name} added successfully"
 
-    @input_error
-    def add_contact(self, name, phone):
-        self.contacts[name] = phone
-        return f"Contact {name} added successfully"
+@input_error
+def change_phone(contacts, name, new_phone):
+    contacts[name] = new_phone
+    return f"Phone number for {name} updated successfully"
 
-    @input_error
-    def change_contact(self, name, phone):
-        if name in self.contacts:
-            self.contacts[name] = phone
-            return f"Phone number for {name} updated successfully"
-        else:
-            raise IndexError
+@input_error
+def show_phone(contacts, name):
+    return contacts[name]
 
-    @input_error
-    def show_phone(self, name):
-        if name in self.contacts:
-            return f"Phone number for {name}: {self.contacts[name]}"
-        else:
-            raise IndexError
+@input_error
+def show_all_contacts(contacts):
+    return "\n".join([f"{name}: {phone}" for name, phone in contacts.items()])
 
-    @input_error
-    def show_all_contacts(self):
-        if self.contacts:
-            return "\n".join([f"{name}: {phone}" for name, phone in self.contacts.items()])
-        else:
-            return "No contacts found"
-
-    def handle_command(self, command):
-        command_parts = command.split()
-        if command_parts[0] == "hello":
-            return "How can I help you?"
-        elif command_parts[0] == "add":
-            return self.add_contact(command_parts[1], command_parts[2])
-        elif command_parts[0] == "change":
-            return self.change_contact(command_parts[1], command_parts[2])
-        elif command_parts[0] == "phone":
-            return self.show_phone(command_parts[1])
-        elif command_parts[0] == "show" and command_parts[1] == "all":
-            return self.show_all_contacts()
-        elif command_parts[0] in ["good", "bye", "close", "exit"]:
-            return "Good bye!"
-        else:
-            return "Invalid command"
-
-    def main(self):
-        print("Welcome to Assistant Bot!")
-        while True:
-            command = input("Enter command: ")
-            if command.lower() in ["good bye", "close", "exit"]:
-                print("Good bye!")
-                break
-            else:
-                result = self.handle_command(command)
-                print(result)
-
+def main():
+    contacts = {}
+    while True:
+        command = input("Enter command: ").lower()
+        if command == "good bye" or command == "bye" or command == "close" or command == "exit":
+            print("Good bye!")
+            break
+        elif command == "hello":
+            print(hello())
+        elif command.startswith("add"):
+            _, name, phone = command.split()
+            print(add_contact(contacts, name, phone))
+        elif command.startswith("change"):
+            _, name, new_phone = command.split()
+            print(change_phone(contacts, name, new_phone))
+        elif command.startswith("phone"):
+            _, name = command.split()
+            print(show_phone(contacts, name))
+        elif command == "show all":
+            print(show_all_contacts(contacts))
 
 if __name__ == "__main__":
-    bot = AssistantBot()
-    bot.main()
+    main()
